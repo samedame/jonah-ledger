@@ -65,14 +65,34 @@ def test_one_row_per_ticker_strongest_wins(symbols):
 
 
 def test_target_and_deadline_rules(symbols):
-    ok, _ = validate([call(target=250, deadline="2026-12-31")], symbols)
-    assert ok[0]["target"] == 250.0 and ok[0]["deadline"] == "2026-12-31"
-    past, st = validate([call(target=250, deadline="2026-01-01")], symbols)
+    ev = "i also want to buy apple on a dip"
+    ok, _ = validate([call(target=250, deadline="2026-12-31", target_evidence=ev)], symbols)
+    assert ok[0]["target"] == 250.0 and ok[0]["deadline"] == "2026-12-31" and ok[0]["target_evidence"] == ev
+    past, st = validate([call(target=250, deadline="2026-01-01", target_evidence=ev)], symbols)
     assert past[0]["deadline"] is None and st["deadlines_discarded"] == 1
     no_target, _ = validate([call(target=None, deadline="2026-12-31")], symbols)
     assert no_target[0]["deadline"] is None
     bad, _ = validate([call(target=-5, deadline="soon")], symbols)
     assert bad[0]["target"] is None and bad[0]["deadline"] is None
+
+
+def test_target_and_deadline_need_grounded_evidence(symbols):
+    for evidence in (None, "", "   ", "we are going to the moon with rockets"):
+        rows, st = validate([call(target=100, deadline="2027-11-11", target_evidence=evidence)], symbols)
+        assert rows[0]["target"] is None and rows[0]["deadline"] is None and rows[0]["target_evidence"] is None
+        assert st["targets_discarded_no_evidence"] == 1
+    rows, _ = validate([call(target=100, deadline="2027-11-11", target_evidence="i am buying nvidia because i think " + "the " * 20)], symbols)
+    assert len(rows[0]["target_evidence"].split()) == 15       # clipped like quotes
+    rows, st = validate([call(target=None, target_evidence="i am buying nvidia")], symbols)
+    assert rows[0]["target_evidence"] is None and "targets_discarded_no_evidence" not in st
+
+
+def test_prompt_rules_and_schema_cover_the_tightened_cases():
+    p = extract.SYSTEM_PROMPT
+    assert "profit-and-loss" in p and "conditional or hypothetical" in p and "Merely owning" in p
+    assert "target_evidence" in p and "Never derive" in p
+    req = extract.TOOL["input_schema"]["properties"]["calls"]["items"]["required"]
+    assert "target_evidence" in req and extract.EXTRACTOR_SEMVER == "1.1.0"
 
 
 def test_extract_calls_with_fake_client(symbols):

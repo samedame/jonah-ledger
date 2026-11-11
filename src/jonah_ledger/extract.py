@@ -16,7 +16,7 @@ from typing import Any
 from .config import STRENGTHS, model_name
 from .symbols import looks_like_ticker, normalize_ticker
 
-EXTRACTOR_SEMVER = "1.0.0"
+EXTRACTOR_SEMVER = "1.1.0"
 MAX_QUOTE_WORDS = 15
 CHUNK_CHARS = 120_000
 GROUNDING_MIN_FRACTION = 0.6
@@ -33,13 +33,19 @@ A call is a statement made in this video that (a) names a specific US-listed tic
 - "mention": bullish or bearish talk about the stock with no position stated.
 Direction is "long" for bullish content and "short" for bearish. buying and wants are always long; short is always short; a mention takes the direction of what he says.
 
-NOT calls (omit them): options fills, win-rate claims, profit-and-loss brags, past trades recounted as history without a present stance, index or ETF talk unless he names a specific ticker as a position, private companies, crypto, and tickers you cannot resolve. Auto-captions garble tickers (e.g. "in video" for NVDA): resolve from context only when certain, otherwise omit.
+"buying" and "wants" need an ACTION or INTENTION stated in this video. Merely owning a stock does not count.
+
+NOT calls (omit them):
+- options fills, win-rate claims, and profit-and-loss statements about positions already held ("we're up 40% on X", "I made $5k on X"), even if they show he owns it;
+- conditional or hypothetical statements ("if it breaks out I would buy", "I would put 60 grand in X if it ..."): a "wants" needs a present intention, not a hypothetical;
+- past trades recounted as history without a present stance, index or ETF talk unless he names a specific ticker as a position, private companies, crypto, and tickers you cannot resolve. Auto-captions garble tickers (e.g. "in video" for NVDA): resolve from context only when certain, otherwise omit.
 
 Rules:
 - One entry per ticker per video. If he says several things about a ticker, report the strongest: buying > wants > short > mention.
-- "quote": a verbatim excerpt from the transcript of at most 15 words that supports the label. Do not paraphrase.
-- "target": a price target in dollars only if he states one for that ticker, else null.
-- "deadline": an ISO date YYYY-MM-DD only if he states a deadline or date for the target, resolved against the video date given in the user message, else null.
+- "quote": a verbatim excerpt from the transcript that supports the label. Hard limit 15 words and it is cut off there, so choose a short passage that ends at a natural point. Do not paraphrase.
+- "target": a price target in dollars only if he states a number for that ticker himself, else null. Never derive one.
+- "deadline": an ISO date YYYY-MM-DD only if he states an explicit date or a concrete period for the target ("by December", "within 6 months", "this year"), resolved against the video date given in the user message. Vague timing ("soon", "eventually") gives null.
+- "target_evidence": a verbatim excerpt (at most 15 words) where he states the target and, if present, the deadline. null when target is null.
 - Do not infer anything he did not say. If the transcript has no calls, return an empty list.
 - Always answer by calling record_calls exactly once, with no other text.
 """
@@ -57,7 +63,7 @@ TOOL: dict[str, Any] = {
                 "items": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["ticker", "strength", "direction", "target", "deadline", "quote"],
+                    "required": ["ticker", "strength", "direction", "target", "deadline", "quote", "target_evidence"],
                     "properties": {
                         "ticker": {"type": "string", "description": "US ticker symbol, e.g. NVDA"},
                         "strength": {"type": "string", "enum": list(STRENGTHS)},
@@ -65,6 +71,7 @@ TOOL: dict[str, Any] = {
                         "target": {"type": ["number", "null"]},
                         "deadline": {"type": ["string", "null"]},
                         "quote": {"type": "string"},
+                        "target_evidence": {"type": ["string", "null"]},
                     },
                 },
             }
@@ -148,6 +155,16 @@ def validate_calls(
             target = None
         else:
             target = float(target)
+        evidence = raw.get("target_evidence")
+        if target is not None:
+            # A target must be backed by his own words, grounded in the transcript, or it is discarded.
+            if not (isinstance(evidence, str) and evidence.strip() and (twords is None or _grounded(evidence, twords))):
+                _bump(stats, "targets_discarded_no_evidence")
+                target, evidence = None, None
+            else:
+                evidence = " ".join(evidence.split()[:MAX_QUOTE_WORDS])
+        else:
+            evidence = None
         deadline = raw.get("deadline")
         if deadline is not None:
             try:
@@ -160,7 +177,7 @@ def validate_calls(
         if target is None and deadline is not None:
             deadline = None  # a deadline with no target has nothing to attach to
         row = {"ticker": tick, "strength": strength, "direction": direction,
-               "target": target, "deadline": deadline, "quote": quote.strip()}
+               "target": target, "deadline": deadline, "quote": quote.strip(), "target_evidence": evidence}
         prev = best.get(tick)
         if prev is None:
             best[tick] = row
@@ -259,7 +276,7 @@ def to_ledger_fields(call: dict[str, Any], *, video_id: str, published_utc: str,
     return {
         "video_id": video_id, "published_utc": published_utc, "ticker": call["ticker"],
         "direction": call["direction"], "strength": call["strength"], "target": call["target"],
-        "deadline": call["deadline"], "quote": call["quote"],
+        "deadline": call["deadline"], "quote": call["quote"], "target_evidence": call.get("target_evidence"),
         "extractor_version": extractor_version(), "prompt_hash": prompt_hash(), "model": model,
         "extracted_at": extracted_at,
     }
