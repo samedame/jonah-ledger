@@ -49,6 +49,11 @@ Where the brief was ambiguous or the world disagreed with it, this file records 
 28. EDGAR asks clients to identify themselves in the user agent. The default is a generic `jonah-ledger research bot`; set `SEC_USER_AGENT` (an Actions variable) to something with a contact if desired. No personal details are sent by default.
 29. Outcomes: for a priced deal with a single numeric offer price, the first trading bar within 4 days of the pricing date gives day-one open/close (raw). Ranged or missing prices are not measured (no clean offer price). The assumption that Nasdaq's `pricedDate` is on or just before first trade day is untested. Deals are listed in calendar order, never ranked or filtered.
 
+## Extractor 1.1.0 (2026-11-11)
+
+31. The first live run (extractor 1.0.0, 8 calls from 4 videos) showed: a profit statement ("up over 40% on X") labelled `buying`; a conditional ("I would put 60 grand in X if it ...") labelled `wants`; a target and a deadline exactly one year after the video date that the shown quote did not support; and quotes cut mid-sentence at 15 words. 1.1.0 changes the prompt (profit-and-loss statements and conditionals are not calls; owning is not buying; quotes must end naturally inside 15 words; deadlines need a concrete period) and adds a code check: the model must return `target_evidence`, a verbatim excerpt for the target/deadline, and a target without grounded evidence is dropped and counted (`targets_discarded_no_evidence`). New rows also store `target_evidence`.
+32. The 8 existing 1.0.0 rows are untouched (the ledger is append-only). Their video ids are already in `seen_videos.json`, so they will not be re-extracted. 1.0.0 and 1.1.0 rows can be told apart by `extractor_version`. The prompt changes are untested against the live model; `jonah-ledger dry-run -n 5` shows 1.1.0's output for the latest videos without writing anything.
+
 ## Cost estimate (unverified)
 
 30. The README's cost figure assumes Sonnet-class pricing of $3 / $15 per million input / output tokens because the price of `claude-sonnet-5-5` was not available to the build. Check current pricing.
