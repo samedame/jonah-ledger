@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- launchd job: run the poll every 3 hours from this machine.
+     1. Replace /ABSOLUTE/PATH/TO/jonah-ledger with your clone's path (in 3 places).
+     2. cp this file to ~/Library/LaunchAgents/com.jonah-ledger.poll.plist
+     3. launchctl load ~/Library/LaunchAgents/com.jonah-ledger.poll.plist
+     The Mac must be awake and online for a run to happen; missed runs are picked up by the next one. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.jonah-ledger.poll</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/ABSOLUTE/PATH/TO/jonah-ledger/scripts/local_run.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/ABSOLUTE/PATH/TO/jonah-ledger</string>
+  <key>StartInterval</key><integer>10800</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/tmp/jonah-ledger-poll.log</string>
+  <key>StandardErrorPath</key><string>/tmp/jonah-ledger-poll.log</string>
+</dict>
+</plist>

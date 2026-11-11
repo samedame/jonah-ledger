@@ -1,0 +1,58 @@
+name: score
+# Daily after the US close: resolve horizons, price-target alerts, stale-bot heartbeat, IPO watcher.
+on:
+  schedule:
+    - cron: "30 22 * * 1-5"   # weekdays 22:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jonah-ledger-data
+  cancel-in-progress: false
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - uses: actions/cache@v4
+        with:
+          path: data/prices_cache
+          key: prices-${{ github.run_id }}
+          restore-keys: prices-
+      - name: Verify ledger
+        run: jonah-ledger ledger verify
+      - name: Score
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JONAH_ALERTS: ${{ vars.JONAH_ALERTS }}
+        run: jonah-ledger score
+      - name: Heartbeat (stale-bot warning if no discovery success in 48h)
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JONAH_ALERTS: ${{ vars.JONAH_ALERTS }}
+        run: jonah-ledger heartbeat
+      - name: IPO watcher (phase 2; failures never block the rest)
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JONAH_ALERTS: ${{ vars.JONAH_ALERTS }}
+          SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT }}
+        run: jonah-ledger ipo-watch
+      - name: Commit data
+        run: |
+          git config user.name "jonah-ledger-bot"
+          git config user.email "jonah-ledger-bot@users.noreply.github.com"
+          git add data reports
+          if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+          git commit -m "data: score $(date -u +%F) [skip ci]"
+          git pull --rebase --autostash
+          git push
