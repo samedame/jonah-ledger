@@ -12,11 +12,24 @@
    "title": "Subscribe for daily updates!!\ud83d\udd25\ud83d\udd25\ud83d\udd25 #stocks #investing #money #finance #stockstobuy"
   },
   "FIyUbYG122A": {
-   "attempts": 1,
+   "dropped": {
+    "quotes_truncated": 1
+   },
+   "kind": "video",
+   "n_calls": 1,
    "published_utc": "2026-11-09T04:13:23Z",
-   "reason": "blocked",
-   "status": "unreadable",
+   "status": "extracted",
    "title": "Jensen Huang cheated on his wife with a Chinese spy!??"
+  },
+  "G8GiZmy9G5E": {
+   "dropped": {
+    "quotes_truncated": 1
+   },
+   "kind": "video",
+   "n_calls": 4,
+   "published_utc": "2026-11-11T17:45:34Z",
+   "status": "extracted",
+   "title": "Here's what I'm buying right now!"
   },
   "IVME_NclK1k": {
    "published_utc": "2026-11-06T18:36:13Z",
@@ -24,10 +37,11 @@
    "title": "Subscribe for daily updates!!\ud83d\udd25\ud83d\udd25\ud83d\udd25 #stocks #investing #money #finance #stockstobuy"
   },
   "O18igNGL1xI": {
-   "attempts": 1,
+   "dropped": {},
+   "kind": "video",
+   "n_calls": 0,
    "published_utc": "2026-11-10T20:10:13Z",
-   "reason": "blocked",
-   "status": "unreadable",
+   "status": "no_calls",
    "title": "Should you buy the Anthropic IPO??"
   },
   "Qqc4Ae-3fqA": {
@@ -66,17 +80,23 @@
    "title": "Should I buy this??\ud83d\ude02\ud83d\ude02\ud83d\ude02 #cars #microcars #lamborghini #funny"
   },
   "z0lLcVCq3QM": {
-   "attempts": 1,
+   "dropped": {
+    "quotes_truncated": 1
+   },
+   "kind": "video",
+   "n_calls": 2,
    "published_utc": "2026-11-09T22:02:24Z",
-   "reason": "blocked",
-   "status": "unreadable",
+   "status": "extracted",
    "title": "This is what I'm trading RIGHT NOW!! ($567,000 portfolio)"
   },
   "zpeCW1S_JAA": {
-   "attempts": 1,
+   "dropped": {
+    "quotes_truncated": 1
+   },
+   "kind": "video",
+   "n_calls": 1,
    "published_utc": "2026-11-10T21:09:30Z",
-   "reason": "blocked",
-   "status": "unreadable",
+   "status": "extracted",
    "title": "Adding Nvidia to my $560,000 portfolio??"
   }
  }
