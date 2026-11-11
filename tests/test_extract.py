@@ -90,6 +90,38 @@ def test_temperature_rejection_retries_without_it(symbols):
     assert len(res.calls) == 1 and "temperature" not in client.calls[-1]
 
 
+def test_forced_tool_choice_rejected_falls_back_to_auto_and_both_params_can_be_dropped(symbols):
+    client = FakeClient({"calls": [call()]}, reject_tool_choice=True, reject_temperature=True)
+    res = extract.extract_calls(TRANSCRIPT, title="t", published_utc="2026-11-08T14:00:00Z", symbols=symbols, client=client)
+    assert [c["ticker"] for c in res.calls] == ["NVDA"]
+    last = client.calls[-1]
+    assert last["tool_choice"] == {"type": "auto"} and "temperature" not in last and last["tools"]
+
+
+def test_text_json_fallback_and_unparseable_is_an_error_not_no_calls(symbols):
+    import json
+
+    import pytest
+    ok = FakeClient(None, text_only='Here you go: {"calls": [' + json.dumps(call()) + "]}")
+    res = extract.extract_calls(TRANSCRIPT, title="t", published_utc="2026-11-08T14:00:00Z", symbols=symbols, client=ok)
+    assert [c["ticker"] for c in res.calls] == ["NVDA"]
+    with pytest.raises(RuntimeError):
+        extract.extract_calls(TRANSCRIPT, title="t", published_utc="2026-11-08T14:00:00Z", symbols=symbols,
+                              client=FakeClient(None, text_only="I could not find any calls, sorry."))
+
+
+def test_unrelated_api_errors_still_raise(symbols):
+    import pytest
+
+    class Boom:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                raise RuntimeError("rate limited")
+    with pytest.raises(RuntimeError, match="rate limited"):
+        extract.extract_calls(TRANSCRIPT, title="t", published_utc="2026-11-08T14:00:00Z", symbols=symbols, client=Boom)
+
+
 def test_version_and_prompt_hash_are_stable():
     assert extract.prompt_hash() == extract.prompt_hash() and len(extract.prompt_hash()) == 64
     assert extract.extractor_version().startswith(extract.EXTRACTOR_SEMVER + "+")

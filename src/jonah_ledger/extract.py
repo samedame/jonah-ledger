@@ -41,6 +41,7 @@ Rules:
 - "target": a price target in dollars only if he states one for that ticker, else null.
 - "deadline": an ISO date YYYY-MM-DD only if he states a deadline or date for the target, resolved against the video date given in the user message, else null.
 - Do not infer anything he did not say. If the transcript has no calls, return an empty list.
+- Always answer by calling record_calls exactly once, with no other text.
 """
 
 TOOL: dict[str, Any] = {
@@ -190,23 +191,41 @@ def _call_model(client, transcript: str, title: str, video_date: date, model: st
         f"Video title: {title}\nVideo date (US/Eastern calendar date): {video_date.isoformat()}\n\n"
         f"Transcript (auto-generated, may be garbled):\n{transcript}"
     )
-    kwargs = dict(
-        model=model, max_tokens=4096, system=SYSTEM_PROMPT, tools=[TOOL],
+    kwargs: dict[str, Any] = dict(
+        model=model, max_tokens=4096, system=SYSTEM_PROMPT, tools=[TOOL], temperature=0,
         tool_choice={"type": "tool", "name": "record_calls"},
         messages=[{"role": "user", "content": user}],
     )
-    try:
-        resp = client.messages.create(temperature=0, **kwargs)
-    except Exception as exc:  # noqa: BLE001
-        # Some model families reject an explicit temperature; retry once without it.
-        if "temperature" in str(exc).lower():
+    # Some models reject temperature or a forced tool_choice. Drop only the parameter the API names and retry;
+    # the system prompt asks for the tool call either way and validate_calls re-checks everything.
+    for _ in range(3):
+        try:
             resp = client.messages.create(**kwargs)
-        else:
-            raise
+            break
+        except Exception as exc:  # noqa: BLE001
+            msg = str(exc).lower()
+            if "tool_choice" in msg and kwargs.get("tool_choice", {}).get("type") != "auto":
+                kwargs["tool_choice"] = {"type": "auto"}
+            elif "temperature" in msg and "temperature" in kwargs:
+                del kwargs["temperature"]
+            else:
+                raise
+    else:
+        raise RuntimeError("model call failed after dropping unsupported parameters")
+    texts = []
     for block in resp.content:
         if getattr(block, "type", None) == "tool_use":
             return dict(block.input)
-    return {"calls": []}
+        if getattr(block, "type", None) == "text":
+            texts.append(getattr(block, "text", ""))
+    # No tool call: accept a bare JSON object in the text, otherwise flag it (never silently read as "no calls").
+    m = re.search(r"\{.*\}", "\n".join(texts), re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except json.JSONDecodeError:
+            pass
+    return {"_unparseable": True}
 
 
 def extract_calls(
@@ -224,6 +243,8 @@ def extract_calls(
     stats: dict[str, int] = {}
     for chunk in _chunks(transcript):
         payload = _call_model(client, chunk, title, vdate, model)
+        if isinstance(payload, dict) and payload.get("_unparseable"):
+            raise RuntimeError("model returned neither a tool call nor parseable JSON")   # video stays unseen, retried next poll
         calls, st = validate_calls(payload, symbols=symbols, video_date=vdate, transcript=chunk)
         for k, v in st.items():
             _bump(stats, k, v)

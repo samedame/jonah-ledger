@@ -21,14 +21,19 @@ def make_frame(start="2026-01-02", periods=300, base=100.0, step=1.0) -> pd.Data
 class FakeClient:
     """Mimics anthropic.Anthropic().messages.create returning a forced tool_use block."""
 
-    def __init__(self, payload, reject_temperature=False):
+    def __init__(self, payload, reject_temperature=False, reject_tool_choice=False, text_only=None):
         self.payload, self.reject_temperature, self.calls = payload, reject_temperature, []
+        self.reject_tool_choice, self.text_only = reject_tool_choice, text_only
         self.messages = SimpleNamespace(create=self._create)
 
     def _create(self, **kw):
         self.calls.append(kw)
         if self.reject_temperature and "temperature" in kw:
             raise RuntimeError("temperature is deprecated for this model")
+        if self.reject_tool_choice and kw.get("tool_choice", {}).get("type") in ("tool", "any"):
+            raise RuntimeError('tool_choice: type "tool" and "any" are not supported for this model.')
+        if self.text_only is not None:
+            return SimpleNamespace(content=[SimpleNamespace(type="text", text=self.text_only)])
         return SimpleNamespace(content=[SimpleNamespace(type="tool_use", input=self.payload)])
 
 
