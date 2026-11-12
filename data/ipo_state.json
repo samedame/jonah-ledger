@@ -1,0 +1,83 @@
+{
+ "alerted": [
+  "pr:1390143-118358",
+  "up:1235548-119602",
+  "up:1396081-118827",
+  "up:1407089-119692",
+  "up:1407588-119709",
+  "up:1407642-119728"
+ ],
+ "outcome_done": [
+  "1390143-118358"
+ ],
+ "priced": {
+  "1390143-118358": {
+   "company": "Narragansett Bancorp, Inc.",
+   "date": "2026-11-02",
+   "exchange": "NASDAQ Capital",
+   "key": "1390143-118358",
+   "kind": "priced",
+   "price_text": "10.00",
+   "shares": "9,098,800",
+   "source": "nasdaq",
+   "symbol": "NARA"
+  }
+ },
+ "upcoming": {
+  "1235548-119602": {
+   "company": "vVARDIS Holding AG",
+   "date": "2026-11-13",
+   "exchange": "NYSE",
+   "key": "1235548-119602",
+   "kind": "upcoming",
+   "price_text": "21.00-24.00",
+   "shares": "9,523,810",
+   "source": "nasdaq",
+   "symbol": "VVVV"
+  },
+  "1396081-118827": {
+   "company": "Tracx Logis Ltd.",
+   "date": "2026-11-13",
+   "exchange": "NASDAQ Capital",
+   "key": "1396081-118827",
+   "kind": "upcoming",
+   "price_text": "18.00-22.00",
+   "shares": "1,000,000",
+   "source": "nasdaq",
+   "symbol": "TRCX"
+  },
+  "1407089-119692": {
+   "company": "Rezera Inc.",
+   "date": "2026-11-12",
+   "exchange": "NASDAQ Global",
+   "key": "1407089-119692",
+   "kind": "upcoming",
+   "price_text": "11.00-13.00",
+   "shares": "16,666,667",
+   "source": "nasdaq",
+   "symbol": "RZRA"
+  },
+  "1407588-119709": {
+   "company": "WINDWARD BIO GROUP AG",
+   "date": "2026-11-13",
+   "exchange": "NASDAQ Global",
+   "key": "1407588-119709",
+   "kind": "upcoming",
+   "price_text": "16.00-18.00",
+   "shares": "10,294,117",
+   "source": "nasdaq",
+   "symbol": "WWB"
+  },
+  "1407642-119728": {
+   "company": "ANTHROPIC, PBC",
+   "date": "2026-11-19",
+   "exchange": "NASDAQ Global Select",
+   "key": "1407642-119728",
+   "kind": "upcoming",
+   "price_text": "70.00-78.00",
+   "shares": "825,000,000",
+   "source": "nasdaq",
+   "symbol": "ANT"
+  }
+ }
+}
