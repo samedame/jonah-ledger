@@ -2,7 +2,7 @@ name: poll
 # discover -> transcript -> extract -> ledger -> alerts. Paper only: no orders, no broker credentials.
 on:
   schedule:
-    - cron: "7 */3 * * *"     # every 3 hours (offset from the top of the hour)
+    - cron: "7 14 * * *"      # once a day, 14:07 UTC (was every 3 hours; the 60-session score does not need it, and the repo is private so each run is billed)
   workflow_dispatch:
 
 permissions:
