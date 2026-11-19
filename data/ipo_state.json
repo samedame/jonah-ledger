@@ -6,6 +6,7 @@
   "pr:1407588-119709",
   "up:1235548-119602",
   "up:1396081-118827",
+  "up:1401430-119311",
   "up:1407089-119692",
   "up:1407588-119709",
   "up:1407642-119728"
@@ -85,6 +86,17 @@
    "source": "nasdaq",
    "symbol": "TRCX"
   },
+  "1401430-119311": {
+   "company": "Football Manager SPAC Inc.",
+   "date": "2026-11-20",
+   "exchange": "NASDAQ Global",
+   "key": "1401430-119311",
+   "kind": "upcoming",
+   "price_text": "10.00",
+   "shares": "10,000,000",
+   "source": "nasdaq",
+   "symbol": "FBLLU"
+  },
   "1407089-119692": {
    "company": "Rezera Inc.",
    "date": "2026-11-12",
@@ -108,7 +120,7 @@
    "symbol": "WWB"
   },
   "1407642-119728": {
-   "company": "Anthropic, PBC",
+   "company": "ANTHROPIC, PBC",
    "date": "2026-11-19",
    "exchange": "NASDAQ Global Select",
    "key": "1407642-119728",
