@@ -3,6 +3,7 @@
   "pr:1212697-115511",
   "pr:1235548-119602",
   "pr:1390143-118358",
+  "pr:1401430-119311",
   "pr:1407588-119709",
   "pr:1407642-119728",
   "up:1235548-119602",
@@ -52,6 +53,17 @@
    "shares": "9,098,800",
    "source": "nasdaq",
    "symbol": "NARA"
+  },
+  "1401430-119311": {
+   "company": "Football Manager SPAC Inc.",
+   "date": "2026-11-25",
+   "exchange": "NASDAQ Global",
+   "key": "1401430-119311",
+   "kind": "priced",
+   "price_text": "10.00",
+   "shares": "10,000,000",
+   "source": "nasdaq",
+   "symbol": "FBLLU"
   },
   "1407588-119709": {
    "company": "WINDWARD BIO GROUP AG",
